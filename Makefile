@@ -25,13 +25,15 @@ ALLTHUMBS = $(patsubst %.TIF,%.thumbnail.jpg,$(ALLTIFF))
 ALLTHUMBLARGE = $(wildcard *thumb_large.jpg)
 ALLTHUMBSLARGE = $(patsubst %.jpg,%.thumbnail.jpg,$(ALLTHUMBLARGE))
 
-
-
-
 # Elegimos B2 pero puede ser cualquiera es solo para tomar el nombre
 COMBINED_VISUAL = $(patsubst %_B2.TIF,%.visual.TIF,$(ALLTIFF2))
 
 COMBINED_VISUAL_PAN = $(patsubst %_B3.TIF,%.visual.pan.TIF,$(ALLTIFF3))
+
+# Tomo B2 pero podria ser cualquier otro
+ALLVISUALBRAG = $(wildcard *226084*_B2.TIF)
+ALLCLIPBRAG = $(patsubst %_B2.TIF,%.visual.pan.bragado.TIF,$(ALLVISUALBRAG))
+ALLVISUALPANBRAG = $(patsubst %_B2.TIF,%.visual.pan.TIF,$(ALLVISUALBRAG))
 
 # Elegimos B2 pero puede ser cualquiera es solo para tomar el nombre
 COMBINED_FOREST = $(patsubst %_B2.TIF,%.forest.TIF,$(ALLTIFF2))
@@ -40,7 +42,8 @@ COMBINED_FOREST = $(patsubst %_B2.TIF,%.forest.TIF,$(ALLTIFF2))
 
 #all: $(COMBINED_VISUAL_PAN)    $(COMBINED_VISUAL) $(ALLTHUMBSLARGE) $(ALLTHUMBS) 
 # progs al cohete pero para que no lo tome como files intermediate y los borre despues
-all:   $(ALLTHUMBSLARGE) $(ALLTHUMBS) $(PROGSBAND8)   $(PROGSBAND4) $(PROGSBAND3) $(PROGSBAND2) $(COMBINED_VISUAL) $(COMBINED_VISUAL_PAN) 
+#
+all:  $(ALLCLIPBRAG) $(ALLTHUMBSLARGE) $(ALLTHUMBS) $(PROGSBAND8)   $(PROGSBAND4) $(PROGSBAND3) $(PROGSBAND2) $(COMBINED_VISUAL) $(COMBINED_VISUAL_PAN) 
 
 
 #$(COMBINED_VISUAL_PAN): $(PROGSBAND8)   $(PROGSBAND4) $(PROGSBAND3) $(PROGSBAND2) 
@@ -48,6 +51,11 @@ all:   $(ALLTHUMBSLARGE) $(ALLTHUMBS) $(PROGSBAND8)   $(PROGSBAND4) $(PROGSBAND3
 #$(COMBINED_VISUAL):  $(PROGSBAND4)  $(PROGSBAND3)  $(PROGSBAND2)
 
 
+# clip
+%.visual.pan.bragado.TIF: %.visual.pan.TIF
+	echo HOLA! $<
+	gdalwarp -cutline /tmp/contexto_campo_bragado.shp -crop_to_cutline  $< $@
+	gdal_rasterize -b 1 -b 2 -b 3 -burn 255 -burn 0 -burn 0  /tmp/limites_campo_bragado.shp $@
 
 
 %.visual.pan.TIF: %_B8.projected.tif %_B4.projected.tif %_B3.projected.tif %_B2.projected.tif
