@@ -7,6 +7,7 @@ use Data::Dumper;
 use Sort::Versions;
 use DBI qw(:sql_types);
 use Date::Period::Human;
+use MIME::Base64;
 
 my $limite = 100;
 my $self = "http://ari1975162.ddns.net:81/cgi-bin/index.pl";
@@ -109,7 +110,24 @@ print "https://landsat.usgs.gov/landsat-collections<p>\n";
 print "GCS,GEOGCS:  Geographic Coordinate System<p>\n";
 print "PCS, PROJCS: Proyected Coordinate System<p>\n";
 print "Datum: datum connects the spheroid to the earth's surface.<p>\n";
+
+print "<h1> Bands</h1>\n";
+
+
+
+#https://cdn-images-1.medium.com/max/1600/0*ww1C4AdO5sIQeAwV.png
+print "<img src=\"data:image/png;base64,";
+
+system("base64 /var/www/cgi-bin/bands.png");
+print  "\">\n<p> \n";
+
+
+print "<img src=\"data:image/png;base64,";
+system("base64 /var/www/cgi-bin/bands-2.png");
+print  "\">\n<p> <i>Credit: https://blog.mapbox.com/putting-landsat-8s-bands-to-work-631c4029e9d1</i> \n";
+
 print <<END;
+
 <table border=1>
 <tr><th>BAND</th><th>DESCRIPTION</th></tr>
 <tr><td>5</td><td>NIR</td></tr>
@@ -132,7 +150,10 @@ print "Filter file_name= <input type=text name=pat value=$pat> ";
 print "<table border=1><tr><td>Thumbnail</td><td><a href=$self?order=file_name>Filename</a><input type=checkbox name=sort value=file_name></td><td><a href=$self?order=sensor>LC</a><input type=checkbox name=sort value=sensor></td><td><a href=$self?order=proc_cor_level>Proc. Corr. Level</a><input type=checkbox name=sort value=proc_cor_level></td><td><a href=$self?order=path_row>WRS Path/row</a><input type=checkbox name=sort value=path_row></td><td><a href=$self?order=acq_date>Acquisition <input type=checkbox name=sort value=acq_date></d></td><td><a href=$self?order=proc_date>Processing</a><input type=checkbox name=sort value=proc_date></td><td><a href=$self?order=coll_number> Collection Number</a><input type=checkbox name=sort value=coll_number></td><td><a href=$self?order=coll_cat> Collection Category</a><input type=checkbox name=sort value=coll_cat></td><td><a href=$self?order=band>Band Name Wavelength (micrometers) 	Resolution (meters)</a></td><td><a href=$self?order=ext_1> Ext. 1</a></td><td><a href=$self?order=ext_2>Ext. 2</a></td><td><a href=$self?order=file_epoch>Downloaded local</a></td><td>Geotiff/gdalinfo</td></tr>\n";
 
 
+
 print "</form>";
+
+
 
 # first sort aquisition
 
@@ -166,6 +187,7 @@ my $cont;
 while ($file_dat = $sth->fetchrow_arrayref()) {
 #    	next unless $file =~ /^LC/;
     	my $file = $file_dat->[1];
+	my $color;
 	next if $file =~ /thumbnail/;
 	
 	# hay regular exp
@@ -177,7 +199,6 @@ while ($file_dat = $sth->fetchrow_arrayref()) {
 	if ($cont == $limite) {
 		last;
 	}
-	print "<tr>";
 	# Landsat collection 1 product identifier
 #	my @file_dat = split(/[_.]/,$file);
 	# L fixed x sensor (C = OLI/TIRS combined)
@@ -212,6 +233,19 @@ while ($file_dat = $sth->fetchrow_arrayref()) {
 		$band .= " ".$bands_desc{$band};
 	}
 
+	$color = "bgcolor = \"#FF0000\"" if $band =~ /B4/;
+	$color = "bgcolor = \"#00FF00\"" if $band =~ /B3/;
+	$color = "bgcolor = \"#0000FF\"" if $band =~ /B2/;
+	$color = "bgcolor = \"#ED9EEA\"" if $band =~ /B5/;
+	$color = "bgcolor = \"#BBBABB\"" if $band =~ /B9/;
+	$color = "bgcolor = \"#939193\"" if $band =~ /B6/;
+	$color = "bgcolor = \"#898989\"" if $band =~ /B7/;
+	$color = "bgcolor = \"#4B8DC4\"" if $band =~ /B8/;
+	$color = "bgcolor = \"#0489B1\"" if $band =~ /B1 /;
+	$color = "bgcolor = \"#F5A9A9\"" if $band =~ /B10/;
+	$color = "bgcolor = \"#FA5858\"" if $band =~ /B11/;
+
+	print "<tr>";
 	my $geo_data = $file_dat->[13];
 #	$band = substr($band,0,2);
 #
@@ -238,7 +272,7 @@ while ($file_dat = $sth->fetchrow_arrayref()) {
 			print '<td>&nbsp</td>';
 	}
 	
-        print "<td>$file</td><td>$l_sensor_sat</td><td>$proc_cor_level</td><td>$path_row</td><td>$acq_time_human</td><td>$proc_time_human</td><td>$col_num</td><td>$col_cat</td><td>$band</td><td>$ext1</td><td>$ext2</td><td>$downloaded_human</td><td>$geo_data</td>";
+        print "<td>$file</td><td>$l_sensor_sat</td><td>$proc_cor_level</td><td>$path_row</td><td>$acq_time_human</td><td>$proc_time_human</td><td>$col_num</td><td>$col_cat</td><td $color>$band</td><td>$ext1</td><td>$ext2</td><td>$downloaded_human</td><td>$geo_data</td>";
 
 
 	print "</tr>\n";
