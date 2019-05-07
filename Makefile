@@ -31,9 +31,10 @@ COMBINED_VISUAL = $(patsubst %_B2.TIF,%.visual.TIF,$(ALLTIFF2))
 COMBINED_VISUAL_PAN = $(patsubst %_B3.TIF,%.visual.pan.TIF,$(ALLTIFF3))
 
 # Tomo B2 pero podria ser cualquier otro
-ALLVISUALBRAG = $(wildcard *226084*_B2.TIF)
-ALLCLIPBRAG = $(patsubst %_B2.TIF,%.visual.pan.bragado.TIF,$(ALLVISUALBRAG))
-ALLVISUALPANBRAG = $(patsubst %_B2.TIF,%.visual.pan.TIF,$(ALLVISUALBRAG))
+# ALLVISUALBRAG = $(wildcard *226084*_B2.TIF)
+ALLBRAG = $(wildcard *226084*.TIF)
+ALLBRAGCLEAN = $(subst .bragado,,$(ALLBRAG))
+ALLCLIPBRAG = $(patsubst %.TIF,%.bragado.TIF,$(ALLBRAGCLEAN))
 
 # Elegimos B2 pero puede ser cualquiera es solo para tomar el nombre
 COMBINED_FOREST = $(patsubst %_B2.TIF,%.forest.TIF,$(ALLTIFF2))
@@ -52,10 +53,13 @@ all:  $(ALLCLIPBRAG) $(ALLTHUMBSLARGE) $(ALLTHUMBS) $(PROGSBAND8)   $(PROGSBAND4
 
 
 # clip
-%.visual.pan.bragado.TIF: %.visual.pan.TIF
-	echo HOLA! $<
+# %.visual.pan.bragado.TIF: %.visual.pan.TIF
+%.bragado.TIF: %.TIF
+	echo To create $@ from  $<
 	gdalwarp -cutline /tmp/contexto_campo_bragado.shp -crop_to_cutline  $< $@
-	gdal_rasterize -b 1 -b 2 -b 3 -burn 255 -burn 0 -burn 0  /tmp/limites_campo_bragado.shp $@
+#	gdal_rasterize -b 1 -b 2 -b 3 -burn 255 -burn 0 -burn 0   /tmp/limites_campo_bragado.shp $@
+	gdal_rasterize  -burn 255 -burn 0 -burn 0   /tmp/limites_campo_bragado.shp $@
+
 
 
 %.visual.pan.TIF: %_B8.projected.tif %_B4.projected.tif %_B3.projected.tif %_B2.projected.tif
